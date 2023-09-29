@@ -1,0 +1,25 @@
+name: Commit Message Check
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  commit_message_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check commit messages
+        run: |
+          for commit in $(git rev-list --since=1.days --no-merges ${{ github.event.before }}..${{ github.sha }}); do
+            message=$(git log --format=%B -n 1 $commit)
+            if [[ ! $message =~ ^US[0-9]+- ]]; then
+              echo "Commit message does not have the required prefix 'US' followed by numbers:"
+              echo "$message"
+              exit 1
+            fi
+          done
